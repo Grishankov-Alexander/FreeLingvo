@@ -163,7 +163,8 @@ def highlight_orths_and_quoutes(entry):
         + entry.findall('.//xmlns:quote', ns)
         )
     for element in elements:
-        element.text = "<b>" + element.text + "</b>"
+        if element.text:
+            element.text = "<b>" + element.text + "</b>"
 
 
 def translate(sentence, entries):
