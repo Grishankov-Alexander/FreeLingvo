@@ -20,6 +20,9 @@ Contact: ache2014@gmail.com
 
 import os
 
+import logging
+logger = logging.getLogger("main.mainwindow")
+
 from PySide2.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLineEdit, QPushButton,
     QComboBox, QTextBrowser, QHBoxLayout, QVBoxLayout,
@@ -27,7 +30,8 @@ from PySide2.QtWidgets import (
     )
 from PySide2.QtCore import Signal, Slot, Qt, QObject, QThread
 from PySide2.QtGui import (
-    QGuiApplication, QKeySequence, QCursor, QIcon, QTextCursor
+    QGuiApplication, QKeySequence, QCursor, QIcon, QTextCursor,
+    QFont, QFontDatabase
     )
 
 from parsing_and_formatting import load_entries, translate
@@ -50,14 +54,23 @@ class Worker(QObject):
     
     @Slot()
     def findTranslations(self):
-        self.started.emit(self.tr("Searching for translations..."))
-        self.translations = translate(
-            self.mainWindow.searchText.text(), self.loadedEntries
-            )
-        if self.translations:
-            text = "<hr>".join(self.translations)
-            self.translationsFound.emit(text)
-        self.ended.emit()
+        try:
+            self.started.emit(self.tr("Searching for translations..."))
+            text = self.mainWindow.searchText.text()
+            self.translations = translate(
+                text, self.loadedEntries
+                )
+            if self.translations:
+                text = "<hr>".join(self.translations)
+                self.translationsFound.emit(text)
+            self.ended.emit()
+        except Exception as e:
+            logger.exception(
+                "Exception happened during translation:\n"
+                "Dictionary: \"%s\"\n"
+                "Text: \"%s\".\n", self.mainWindow.dictsCombo.currentText(),
+                text
+                )
 
     def __init__(self, mainWindow):
         super().__init__()
@@ -97,6 +110,13 @@ class MainWindow(QMainWindow):
         cursor = self.translationsBrowser.textCursor()
         cursor.setPosition(0, QTextCursor.KeepAnchor)
         cursor.insertHtml(text)
+
+    @Slot(str)
+    def changeFontSize(self, size):
+        self.translationsBrowser.setFont(
+            QFont(self.font().family(), int(size))
+            )
+        self.update()
     
     def __init__(self, parent=None, *args, appctxt=None, **kwargs):
         super().__init__(parent)
@@ -117,6 +137,7 @@ class MainWindow(QMainWindow):
             )
         self.setMinimumSize(screenGeometry.width() / 4,
                             screenGeometry.height() / 4)
+        self.setFont(QFont("open sans"))
 
         self.fileMenu = self.menuBar().addMenu(self.tr("&File"))
         self.exitAct = self.fileMenu.addAction(self.tr("&Exit"))
@@ -175,6 +196,13 @@ class MainWindow(QMainWindow):
         self.translationsBrowser.redoAvailable.connect(
             self.redoButton.setEnabled
             )
+
+        self.sizeLabel = QLabel(self.tr("Font size:"))
+        self.sizeCombo = QComboBox()
+        for size in QFontDatabase.standardSizes():
+            self.sizeCombo.addItem(str(size))
+        self.sizeCombo.setCurrentText(str(self.font().pointSize()))
+        self.sizeCombo.currentIndexChanged[str].connect(self.changeFontSize)
         
         self.controlsLayout = QHBoxLayout()
         self.controlsLayout.addWidget(self.searchText)
@@ -185,6 +213,8 @@ class MainWindow(QMainWindow):
         self.browserToolsLayout.addWidget(self.undoButton)
         self.browserToolsLayout.addWidget(self.redoButton)
         self.browserToolsLayout.addStretch(1)
+        self.browserToolsLayout.addWidget(self.sizeLabel)
+        self.browserToolsLayout.addWidget(self.sizeCombo)
 
         self.centralLayout = QVBoxLayout()
         self.centralLayout.addLayout(self.controlsLayout)
