@@ -18,7 +18,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Contact: ache2014@gmail.com
 """
 
+import os
 import sys
+
+import logging
+logger = logging.getLogger('main')
+logger.setLevel(logging.DEBUG)
+FH_PATH = 'logs/main.log'
+if not os.path.exists(FH_PATH):
+        os.makedirs(os.path.dirname(FH_PATH), exist_ok=True)
+fh = logging.FileHandler(FH_PATH)
+fh.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+logger.addHandler(fh)
+logger.addHandler(ch)
 
 from fbs_runtime.application_context.PySide2 import ApplicationContext
 from PySide2.QtGui import QIcon
