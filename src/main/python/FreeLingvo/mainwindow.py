@@ -26,7 +26,9 @@ from PySide2.QtWidgets import (
     QLabel, QProgressBar
     )
 from PySide2.QtCore import Signal, Slot, Qt, QObject, QThread
-from PySide2.QtGui import QGuiApplication, QKeySequence, QCursor, QIcon
+from PySide2.QtGui import (
+    QGuiApplication, QKeySequence, QCursor, QIcon, QTextCursor
+    )
 
 from parsing_and_formatting import load_entries, translate
 
@@ -92,7 +94,9 @@ class MainWindow(QMainWindow):
 
     @Slot(str)
     def showTranslations(self, text):
-        self.translationsBrowser.setText(text)
+        cursor = self.translationsBrowser.textCursor()
+        cursor.setPosition(0, QTextCursor.KeepAnchor)
+        cursor.insertHtml(text)
     
     def __init__(self, parent=None, *args, appctxt=None, **kwargs):
         super().__init__(parent)
