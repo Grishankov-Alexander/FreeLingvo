@@ -26,7 +26,7 @@ logger = logging.getLogger("main.mainwindow")
 from PySide2.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLineEdit, QPushButton,
     QComboBox, QTextBrowser, QHBoxLayout, QVBoxLayout,
-    QLabel, QProgressBar
+    QLabel, QProgressBar, QMessageBox
     )
 from PySide2.QtCore import Signal, Slot, Qt, QObject, QThread
 from PySide2.QtGui import (
@@ -102,8 +102,29 @@ class MainWindow(QMainWindow):
         
     @Slot()
     def about(self):
-#TODO:
-        pass
+        title = self.tr("About FreeLingvo")
+        text = self.tr(
+            "<b>FreeLingvo</b> is a dictionary search application"
+            " that can work with over 140 dictionaries without"
+            " Internet connection and is available under the"
+            " GNU General Public License v3.<br><br>"
+            "To search for translations in the selected"
+            " dictionary, you must enter the desired word"
+            " in the field and press \"Enter\" or click the"
+            " \"translate\" button. You can also enter a sentence."
+            " In this case, the sentence will be divided into"
+            " separate words and possible combinations of these words."
+            " The program will search for each word and combination"
+            " in the selected dictionary, in which case the"
+            " output can be large.<br><br>"
+            "<b>Homepage:</b>"
+            "<a href=\"https://github.com/ache2014/FreeLingvo\">"
+            " GitHub</a><br>"
+            "<b>Contact:</b>"
+            "<a href=\"mailto:ache2014@gmail.com\">"
+            " ache2014@gmail.com</a>"
+        )
+        QMessageBox.about(self, title, text)
 
     @Slot(str)
     def showTranslations(self, text):
@@ -137,12 +158,11 @@ class MainWindow(QMainWindow):
             )
         self.setMinimumSize(screenGeometry.width() / 4,
                             screenGeometry.height() / 4)
-        qApp.setFont(QFont("roboto", 11))
 
         self.fileMenu = self.menuBar().addMenu(self.tr("&File"))
         self.exitAct = self.fileMenu.addAction(self.tr("&Exit"))
         self.exitAct.setStatusTip(self.tr("Exit from FreeLingvo"))
-        self.exitAct.triggered.connect(qApp.exit)
+        self.exitAct.triggered.connect(self.close)
 
         self.helpMenu = self.menuBar().addMenu(self.tr("&Help"))
         self.aboutAct = self.helpMenu.addAction(self.tr("&About"))
