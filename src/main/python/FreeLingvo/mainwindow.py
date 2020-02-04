@@ -40,7 +40,7 @@ from parsing_and_formatting import load_entries, translate
 class Worker(QObject):
     started = Signal(str)
     ended = Signal()
-    translationsFound = Signal(str)
+    translationsReady = Signal(list)
     
     @Slot(str)
     def loadDict(self, dictName):
@@ -56,20 +56,19 @@ class Worker(QObject):
     def findTranslations(self):
         try:
             self.started.emit(self.tr("Searching for translations..."))
-            text = self.mainWindow.searchText.text()
-            self.translations = translate(
-                text, self.loadedEntries
+            searchedText = self.mainWindow.searchText.text()
+            translations = translate(
+                searchedText, self.loadedEntries
                 )
-            if self.translations:
-                text = "<hr>".join(self.translations)
-                self.translationsFound.emit(text)
+            self.translationsReady.emit(translations)
             self.ended.emit()
         except Exception as e:
             logger.exception(
                 "Exception happened during translation:\n"
                 "Dictionary: \"%s\"\n"
-                "Text: \"%s\".\n", self.mainWindow.dictsCombo.currentText(),
-                text
+                "Searched text: \"%s\".\n",
+                self.mainWindow.dictsCombo.currentText(),
+                searchedText
                 )
 
     def __init__(self, mainWindow):
@@ -126,10 +125,15 @@ class MainWindow(QMainWindow):
         )
         QMessageBox.about(self, title, text)
 
-    @Slot(str)
-    def showTranslations(self, text):
+    @Slot(list)
+    def showTranslations(self, translations):
+        if translations:
+            text = "<hr>".join(translations)
+        else:
+            text = self.tr("Sorry, no translations were found for:")
+            text += "<br><b>{}</b>".format(self.searchText.text())
         cursor = self.translationsBrowser.textCursor()
-        cursor.setPosition(0, QTextCursor.KeepAnchor)
+        cursor.select(QTextCursor.Document)
         cursor.insertHtml(text)
 
     @Slot(str)
@@ -148,7 +152,7 @@ class MainWindow(QMainWindow):
         self.workerThread.finished.connect(self.worker.deleteLater)
         self.worker.started.connect(self.startProgress)
         self.worker.ended.connect(self.endProgress)
-        self.worker.translationsFound.connect(self.showTranslations)
+        self.worker.translationsReady.connect(self.showTranslations)
         self.workerThread.start()
 
         screenGeometry = QGuiApplication.screens()[0].geometry()
