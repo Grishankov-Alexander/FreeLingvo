@@ -137,7 +137,7 @@ class MainWindow(QMainWindow):
             )
         self.setMinimumSize(screenGeometry.width() / 4,
                             screenGeometry.height() / 4)
-        self.setFont(QFont("open sans"))
+        qApp.setFont(QFont("roboto", 11))
 
         self.fileMenu = self.menuBar().addMenu(self.tr("&File"))
         self.exitAct = self.fileMenu.addAction(self.tr("&Exit"))
