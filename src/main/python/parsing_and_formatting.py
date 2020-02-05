@@ -158,6 +158,7 @@ def have_matches(entry, words):
 
 
 def highlight_orths_and_quoutes(entry):
+    """Appends html tag to highlight translations."""
     elements = (
         entry.findall('.//xmlns:orth', ns)
         + entry.findall('.//xmlns:quote', ns)

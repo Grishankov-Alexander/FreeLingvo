@@ -38,12 +38,16 @@ from parsing_and_formatting import load_entries, translate
 
 
 class Worker(QObject):
+    """Special class for time-consuming operations that should
+    be used in the different thread."""
     started = Signal(str)
     ended = Signal()
     translationsReady = Signal(list)
     
     @Slot(str)
     def loadDict(self, dictName):
+        """Loads the contents of the selected dictionary as an XML
+        element tree and saves it locally."""
         self.started.emit(self.tr("Loading dictionary..."))
         self.loadedEntries = load_entries(
             self.mainWindow.appctxt.get_resource(
@@ -54,6 +58,8 @@ class Worker(QObject):
     
     @Slot()
     def findTranslations(self):
+        """Produces the translations list for the entered text
+        and emits signal with that list."""
         try:
             self.started.emit(self.tr("Searching for translations..."))
             searchedText = self.mainWindow.searchText.text()
@@ -72,14 +78,17 @@ class Worker(QObject):
                 )
 
     def __init__(self, mainWindow):
+        """Initialize the class with useful variables."""
         super().__init__()
         self.mainWindow = mainWindow
         self.loadedEntries = []
 
 
 class MainWindow(QMainWindow):
+    """Main class for interacting with the applications GUI."""
     @Slot(str)
     def startProgress(self, message):
+        """Shows that the window is busy doing some work."""
         self.translateButton.setEnabled(False)
         self.dictsCombo.setEnabled(False)
         label = QLabel(message)
@@ -93,6 +102,7 @@ class MainWindow(QMainWindow):
         
     @Slot()
     def endProgress(self):
+        """Shows that the window is ready for the interaction."""
         self.statusBar().setParent(None)
         self.statusBar().showMessage(self.tr("Done"), 2000)
         QGuiApplication.restoreOverrideCursor()
@@ -101,6 +111,7 @@ class MainWindow(QMainWindow):
         
     @Slot()
     def about(self):
+        """Shows the "about" message box."""
         title = self.tr("About FreeLingvo")
         text = self.tr(
             "<b>FreeLingvo</b> is a dictionary search application"
@@ -127,6 +138,7 @@ class MainWindow(QMainWindow):
 
     @Slot(list)
     def showTranslations(self, translations):
+        """Shows translations in the translations browser"""
         if translations:
             text = "<hr>".join(translations)
         else:
@@ -138,12 +150,14 @@ class MainWindow(QMainWindow):
 
     @Slot(str)
     def changeFontSize(self, size):
+        """Changes the font size for the translations browser."""
         self.translationsBrowser.setFont(
             QFont(self.font().family(), int(size))
             )
         self.update()
     
     def __init__(self, parent=None, *args, appctxt=None, **kwargs):
+        """Initializes all GUI elements and a separate thread."""
         super().__init__(parent)
         self.appctxt = appctxt
         self.worker = Worker(self)
@@ -252,6 +266,7 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(self.tr("Ready"), 2000)
         
     def closeEvent(self, event):
+        """Destroys the thread properly before exiting."""
         self.workerThread.quit()
         self.workerThread.wait()
         super().closeEvent(event)
