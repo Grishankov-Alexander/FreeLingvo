@@ -6,11 +6,7 @@ FreeLingvo is an open source translation search GUI application that works offli
 
 ### For Users
 
-##### Installers
-The installer is currently available for Windows. You can go to [release v1.0](https://github.com/ache2014/FreeLingvo/releases/tag/v1.0) and download the "FreeLingvoSetup.exe".  
-**Note**: *The installer is not signed yet, so Windows will probably warn you about an unrecognized application.*
-
-##### To run or freeze the application manually:
+##### Installation:
 1. Clone this repo to your current directory:  
 `git clone https://github.com/ache2014/FreeLingvo.git`
 
